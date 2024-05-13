@@ -10,19 +10,20 @@ export type Movie = {
   rating: string;
   runtime: string;
   now_showing: boolean;
+  trailer?: string;
 };
 
 export type ShowtimeInfo = {
   showtime: string;
   movie: Movie;
 };
-export const getShowtimes = async (): Promise<ShowtimeInfo[]> => {
+export const getShowtimes = async (date: Date): Promise<ShowtimeInfo[]> => {
   const response = await fetch(infoUrl);
   const json = await response.json();
   const moviesNowShowing = (Object.values(json.data.movies) as Movie[]).filter(
-    (movie: Movie) => movie.now_showing,
+    (movie: Movie) => movie.now_showing || true,
   );
-  const today = new Date().toLocaleString(undefined, {
+  const today = date.toLocaleString(undefined, {
     year: "numeric",
     month: "2-digit",
     day: "2-digit",

@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import "@aws-amplify/ui-react/styles.css";
 import "@fontsource/inter/400.css";
 import "./App.css";
+
 import { Movie, ShowtimeInfo, getShowtimes } from "./helpers/getShowtimes";
 import {
   Card,
@@ -15,7 +16,9 @@ import {
   Divider,
   Button,
   Collection,
+  Link,
 } from "@aws-amplify/ui-react";
+import { addDays } from "date-fns";
 
 const MovieCard = (props: { movie: Movie; showtimeInfo: ShowtimeInfo[] }) => {
   const { tokens } = useTheme();
@@ -60,7 +63,7 @@ const MovieCard = (props: { movie: Movie; showtimeInfo: ShowtimeInfo[] }) => {
               wrap="wrap"
             >
               {(item) => (
-                <Button>
+                <Button key={item.showtime}>
                   {new Date(item.showtime).toLocaleTimeString(undefined, {
                     hour: "numeric",
                     minute: "2-digit",
@@ -68,6 +71,8 @@ const MovieCard = (props: { movie: Movie; showtimeInfo: ShowtimeInfo[] }) => {
                 </Button>
               )}
             </Collection>
+            <Divider />
+            {!props.movie.trailer ? null : <Link href={props.movie.trailer}>Trailer</Link>}
           </Flex>
         </Flex>
       </Card>
@@ -75,26 +80,33 @@ const MovieCard = (props: { movie: Movie; showtimeInfo: ShowtimeInfo[] }) => {
   );
 };
 function App() {
+  const { tokens } = useTheme();
   const [showtimeInfo, setShowtimeInfo] = useState<ShowtimeInfo[]>([]);
+  const [date, setDate] = useState<Date>(new Date());
   useEffect(() => {
     const setup = async () => {
-      const s = await getShowtimes();
+      const s = await getShowtimes(date);
       setShowtimeInfo(s);
     };
     setup();
-  }, []);
+  }, [date]);
 
   if (!showtimeInfo.length) return "Loading...";
   const movieIds = showtimeInfo
     .map((s) => s.movie.id)
     .filter((value, index, array) => array.indexOf(value) === index);
 
+  const buttons = [0, 1, 2, 3, 4, 5, 6].map(number => {
+    const day = addDays(new Date(), number);
+    return <Button key={number} marginLeft={tokens.space.small} onClick={() => setDate(day)}>{day.toLocaleDateString(undefined, { day: 'numeric', month: 'numeric', weekday: 'short' })}</Button>
+  })
   return (
     <>
+      {buttons}
       {movieIds.map((movieId) => {
-        const showtimes = showtimeInfo.filter((s) => s.movie.id === movieId);
+        const showtimes = showtimeInfo.filter((s) => s.movie?.id === movieId);
         return (
-          <MovieCard movie={showtimes[0].movie} showtimeInfo={showtimes} />
+          <MovieCard key={movieId} movie={showtimes[0].movie} showtimeInfo={showtimes} />
         );
       })}
     </>
