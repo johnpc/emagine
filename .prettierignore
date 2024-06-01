@@ -1,0 +1,6 @@
+*.svg
+.env*
+.gitignore
+.prettierignore
+.husky/
+.eslintcache

@@ -23,20 +23,22 @@ export const getShowtimes = async (date: Date): Promise<ShowtimeInfo[]> => {
   const moviesNowShowing = (Object.values(json.data.movies) as Movie[]).filter(
     (movie: Movie) => movie.now_showing || true,
   );
-  const today = date.toLocaleString(undefined, {
+  const today = date.toLocaleString("en-US", {
     year: "numeric",
     month: "2-digit",
     day: "2-digit",
+    timeZone: "UTC",
   });
   const [month, day, year] = today.split("/");
   const todayKey = `${year}-${month}-${day}`;
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const sessionsForDate = Object.values(json.data.sessions_by_theatre)
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     .map((t: any) => t.business_dates)
     .find((t) => t);
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const groups = Object.values(sessionsForDate[todayKey])
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     .map((g: any) =>
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       g.groups.map((group: any) => ({
         ...group,
         movieId: g.movie_id,
@@ -44,13 +46,12 @@ export const getShowtimes = async (date: Date): Promise<ShowtimeInfo[]> => {
     )
     .flat();
 
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const sessions = groups
     .map((g) =>
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       g.sessions.map((sesh: any) => ({ ...sesh, movieId: g.movieId })),
     )
     .flat();
-  // console.log({t: JSON.stringify(sessions, null, 2) })
   const showtimeInfo = sessions
     .map((sesh) => {
       const movie = moviesNowShowing.find((movie) => sesh.movieId === movie.id);
